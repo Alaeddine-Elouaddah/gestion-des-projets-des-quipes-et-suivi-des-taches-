@@ -1,0 +1,132 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.navbar {
+    background-color: #12c85e;
+    padding: 10px 20px;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.nav-links li {
+    margin: 0 10px;
+}
+
+.nav-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #12c85e;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.nav-button:hover {
+    background-color: #0a8f4d;
+}
+
+.page-title {
+    text-align: center;
+    margin-top: 60px;
+    margin-bottom: 40px;
+    color: #333;
+    font-size: 24px;
+}
+
+.section {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+    text-align: center;
+}
+
+#task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#task-list li {
+    background-color: #f9f9f9;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Style du tableau */
+#status-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+#status-table thead {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#status-table th, #status-table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+#status-table th {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+}
+
+#status-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#status-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+#status-table tfoot {
+    background-color: #f1f1f1;
+    font-weight: bold;
+}
+/* Style du bouton de mise à jour */
+.update-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #12c85e;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.update-button:hover {
+    background-color: #0a8f4d;
+}
