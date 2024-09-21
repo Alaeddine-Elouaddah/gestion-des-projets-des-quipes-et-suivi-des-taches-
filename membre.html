@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Membres - Statut</title>
+    <link rel="stylesheet" href="membre.css">
+    <link rel="icon" href="images/logov2.ocp.png">
+</head>
+<body>
+    <nav class="navbar">
+        <ul class="nav-links">
+            <li><a href="#home" class="nav-button">Accueil</a></li>
+            <li><a href="pagep.html" class="nav-button">Retour à la page principale</a></li>
+        </ul>
+    </nav>
+    
+    <h3 class="page-title">Gestion des Statuts des Membres</h3>
+
+    <div id="status-section" class="section">
+        <h2>Tes informations</h2>
+       
+        <table id="status-table">
+            <thead>
+                <tr>
+                    <th>Titre de la Tâche</th>
+                    <th>Groupe</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody id="status-list"></tbody>
+        </table>
+        
+        <!-- Button to update status -->
+        <button id="update-status-button" class="update-button">Mettre à jour le statut</button>
+    </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // On n'utilise plus une constante pour l'email, on va récupérer l'email depuis la base de données via recuperer-taches.php
+        fetch('recuperer-taches.php')
+            .then(response => response.json())
+            .then(data => {
+                const statusList = document.getElementById('status-list');
+                statusList.innerHTML = ''; 
+    
+                if (data.error) {
+                    console.error('Erreur:', data.error);
+                    return;
+                }
+    
+                data.forEach(task => {
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td>${task.task_title}</td>
+                        <td>${task.group_name}</td>
+                        <td>
+                            <select class="status-select" data-task-id="${task.id}">
+                                <option value="pas encore"${task.task_status === 'pas encore' ? ' selected' : ''}>Pas encore</option>
+                                <option value="en cours"${task.task_status === 'en cours' ? ' selected' : ''}>En cours</option>
+                                <option value="fait"${task.task_status === 'fait' ? ' selected' : ''}>Fait</option>
+                            </select>
+                        </td>
+                    `;
+                    statusList.appendChild(newRow);
+                });
+            })
+            .catch(error => console.error('Erreur de fetch:', error));
+    });
+    
+    // Mettre à jour le statut des tâches
+    document.getElementById('update-status-button').addEventListener('click', function() {
+        const statusSelects = document.querySelectorAll('.status-select');
+        const updates = [];
+    
+        statusSelects.forEach(select => {
+            const taskId = select.getAttribute('data-task-id');
+            const status = select.value;
+            updates.push({ taskId, status });
+        });
+    
+        fetch('mettre-a-jour-status.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ updates })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Statuts mis à jour avec succès.');
+            } else {
+                alert('Erreur lors de la mise à jour des statuts.');
+            }
+        })
+        .catch(error => console.error('Erreur de fetch:', error));
+    });
+</script>
+    
+</body>
+</html>
