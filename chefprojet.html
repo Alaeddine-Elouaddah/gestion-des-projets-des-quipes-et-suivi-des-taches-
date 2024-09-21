@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chef de Projet - Gestion des Membres et Tâches</title>
+    <link rel="stylesheet" href="chefprojet.css">
+</head>
+<body>
+    <nav class="navbar">
+        <ul class="nav-links">
+            <li><a href="#home">Accueil</a></li>
+            <li><a href="pagep.html">Retour à l'accueil</a></li>
+        </ul>
+    </nav>
+
+    <div class="sidebar">
+        <button onclick="showSection('projects-section')">Projets Assignés</button>
+        <button onclick="showSection('groups-section')">Créer un Groupe</button>
+        <button onclick="showSection('members-section')">Créer un Membre</button>
+        <button onclick="showSection('tasks-section')">Ajouter une Tâche</button>
+    </div>
+
+    <div class="main-content">
+        <!-- Section des Projets Assignés -->
+        <div id="projects-section" class="section active">
+            <h2 class="section-title">Projets Assignés</h2>
+            <table id="projects-table">
+                <thead>
+                    <tr>
+                        <th>Nom du Projet</th>
+                        <th>Date Fin</th>
+                        <th>Budget</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody id="projects-list"></tbody>
+            </table>
+        </div>
+
+        <!-- Section de Création de Groupe -->
+        <div id="groups-section" class="section">
+            <h2 class="section-title">Créer un Groupe</h2>
+            <form id="add-group-form">
+                <label for="group-name">Nom du Groupe :</label>
+                <input type="text" id="group-name" name="group-name" required>
+                <button type="submit">Créer</button>
+            </form>
+        </div>
+
+        <!-- Section de Création de Membre -->
+        <div id="members-section" class="section">
+            <h2 class="section-title">Créer un Membre</h2>
+            <form id="add-member-form">
+                <label for="member-email">Email du Membre :</label>
+                <input type="email" id="member-email" name="member-email" required>
+                <label for="member-password">Mot de Passe :</label>
+                <input type="password" id="member-password" name="member-password" required>
+                <button type="submit">Créer un Membre</button>
+            </form>
+        </div>
+
+        <!-- Section d'Ajout de Tâche -->
+        <div id="tasks-section" class="section">
+            <h2 class="section-title">Ajouter une Tâche</h2>
+            <form id="add-task-form">
+                <label for="task-title">Titre de la Tâche :</label>
+                <input type="text" id="task-title" name="task-title" required>
+
+                <label for="task-group">Nom du Groupe :</label>
+                <select id="task-group" name="task-group" required>
+                    <option value="">Choisissez un groupe</option>
+                </select>
+
+                <label for="task-assignee">Assigner à :</label>
+                <select id="task-assignee" name="task-assignee" required>
+                    <option value="">Choisissez un membre</option>
+                </select>
+
+                <label for="task-status">Statut :</label>
+                <select id="task-status" name="task-status" required>
+                    <option value="pas encore">Pas encore</option>
+                </select>
+
+                <button type="submit">Ajouter la Tâche</button>
+            </form>
+
+            <!-- Section Liste des Tâches -->
+            <h2 class="section-title">Liste des Tâches</h2>
+            <table id="tasks-table">
+                <thead>
+                    <tr>
+                        <th>Titre de la Tâche</th>
+                        <th>Groupe</th>
+                        <th>Assigner à</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody id="tasks-list">
+                    <!-- Les tâches seront insérées ici par JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Section de Modification de Tâche -->
+        <div id="edit-task-section" class="section">
+            <h2 class="section-title">Modifier une Tâche</h2>
+            <form id="edit-task-form">
+                <input type="hidden" id="edit-task-id" name="edit-task-id"> <!-- Pour stocker l'ID de la tâche à modifier -->
+
+                <label for="edit-task-title">Titre de la Tâche :</label>
+                <input type="text" id="edit-task-title" name="edit-task-title" required>
+
+                <label for="edit-task-group">Nom du Groupe :</label>
+                <select id="edit-task-group" name="edit-task-group" required>
+                    <!-- Les groupes seront chargés ici par le JavaScript -->
+                </select>
+
+                <label for="edit-task-assignee">Assigner à :</label>
+                <select id="edit-task-assignee" name="edit-task-assignee" required>
+                    <!-- Les membres seront chargés ici par le JavaScript -->
+                </select>
+
+                <label for="edit-task-status">Statut :</label>
+                <select id="edit-task-status" name="edit-task-status" required>
+                    <option value="pas encore">Pas encore</option>
+                </select>
+
+                <button type="submit">Modifier la Tâche</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Conteneur pour les notifications -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Inclusion du fichier JavaScript -->
+    <script src="chefprojet.js"></script>
+</body>
+</html>
