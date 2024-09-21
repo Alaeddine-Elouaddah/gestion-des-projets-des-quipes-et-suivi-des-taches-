@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration des Projets</title>
+    <link rel="icon" href="images/logov2.ocp.png">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <nav class="navbar">
+        <ul class="nav-links">
+            <li><a href="admin.html" class="nav-button">Accueil</a></li>
+            <li><a href="pagep.html" class="nav-button">Retour à l'accueil</a></li>
+        </ul>
+    </nav>
+
+    <div class="admin-container">
+        <h1>Gestion des Projets</h1>
+
+        <!-- Section to create a new Chef de Projet -->
+        <div class="chef-form">
+            <h2>Créer un Chef de Projet</h2>
+            <form id="create-chef-form" action="insert_chef.php" method="POST">
+                <label for="chef-email">Email du Chef de Projet :</label>
+                <input type="email" id="chef-email" name="chef-email" required>
+                
+                <label for="chef-password">Mot de passe :</label>
+                <input type="password" id="chef-password" name="chef-password" required>
+                
+                <button type="submit">Créer Chef de Projet</button>
+            </form>
+        </div>
+
+        <!-- Section to add a new Project -->
+        <div class="project-form">
+            <h2>Ajouter un Projet</h2>
+            <form id="add-project-form">
+                <label for="project-name">Nom du Projet :</label>
+                <input type="text" id="project-name" name="project-name" required>
+                
+                <label for="manager-email">Email du Chef de Projet :</label>
+                <select id="manager-email" name="manager-email" required>
+                    <!-- Options will be populated dynamically -->
+                </select>
+                
+                <label for="date">Date Fin :</label>
+                <input type="date" id="date" name="date" required>
+                
+                <label for="budget">Budget :</label>
+                <input type="number" id="budget" name="budget" step="0.01" required>
+                
+                <label for="description">Description :</label>
+                <textarea id="description" name="description" rows="4" required></textarea>
+                
+                <button type="submit">Ajouter Projet</button>
+            </form>
+        </div>
+
+        <div class="project-list">
+            <h2>Liste des Projets</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom du Projet</th>
+                        <th>Email Chef de Projet</th>
+                        <th>Date Fin</th>
+                        <th>Budget</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="project-table-body">
+                    <!-- Les projets seront ajoutés ici dynamiquement -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div id="confirmation-modal" class="confirmation-modal">
+            <div class="confirmation-content">
+                <p id="confirmation-message">Êtes-vous sûr de vouloir supprimer ce projet ?</p>
+                <button id="confirm-delete" class="confirm-btn">Confirmer</button>
+                <button id="cancel-delete" class="cancel-btn">Annuler</button>
+            </div>
+        </div>
+
+        <!-- Modification Modal -->
+        <div id="modification-modal" class="modification-modal">
+            <div class="modification-content">
+                <h2>Modifier le Projet</h2>
+                <form id="edit-project-form">
+                    <input type="hidden" id="edit-project-id" name="edit-project-id">
+                    
+                    <label for="edit-project-name">Nom du Projet :</label>
+                    <input type="text" id="edit-project-name" name="edit-project-name" required>
+                    
+                    <label for="edit-manager-email">Email du Chef de Projet :</label>
+                    <select id="edit-manager-email" name="edit-manager-email" required>
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                    
+                    <label for="edit-date">Date Fin :</label>
+                    <input type="date" id="edit-date" name="edit-date" required>
+                    
+                    <label for="edit-budget">Budget :</label>
+                    <input type="number" id="edit-budget" name="edit-budget" step="0.01" required>
+                    
+                    <label for="edit-description">Description :</label>
+                    <textarea id="edit-description" name="edit-description" rows="4" required></textarea>
+                    
+                    <button type="submit">Modifier Projet</button>
+                </form>
+                <button id="close-modification-modal" class="cancel-btn">Fermer</button>
+            </div>
+        </div>
+
+        <!-- Notification Area -->
+        <div id="notification-area" class="notification"></div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var createChefForm = document.getElementById('create-chef-form');
+            var projectTableBody = document.getElementById('project-table-body');
+            var editProjectForm = document.getElementById('edit-project-form');
+            var confirmationModal = document.getElementById('confirmation-modal');
+            var confirmationMessage = document.getElementById('confirmation-message');
+            var confirmDeleteBtn = document.getElementById('confirm-delete');
+            var cancelDeleteBtn = document.getElementById('cancel-delete');
+            var selectedProjectId = null;
+            var modificationModal = document.getElementById('modification-modal');
+            var notificationArea = document.getElementById('notification-area');
+
+            // Création d'un Chef de Projet
+            createChefForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                var formData = new FormData(createChefForm);
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'insert_chef.php', true);
+
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        showNotification('Chef de Projet créé avec succès !');
+                        createChefForm.reset();
+                        loadProjectManagers();
+                    } else {
+                        showNotification('Erreur lors de l\'ajout du Chef de Projet.', 'error');
+                    }
+                };
+
+                xhr.send(formData);
+            });
+
+            // Charger les Chefs de Projet dans le formulaire
+            function loadProjectManagers() {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'get_project_managers.php', true);
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        var managers = JSON.parse(xhr.responseText);
+                        var managerSelect = document.getElementById('manager-email');
+                        var editManagerSelect = document.getElementById('edit-manager-email');
+                        managerSelect.innerHTML = '';
+                        editManagerSelect.innerHTML = '';
+
+                        managers.forEach(function(manager) {
+                            var option = document.createElement('option');
+                            option.value = manager.email;
+                            option.textContent = manager.email;
+                            managerSelect.appendChild(option);
+                            editManagerSelect.appendChild(option.cloneNode(true));
+                        });
+                    }
+                };
+                xhr.send();
+            }
+
+            // Charger les projets au chargement de la page
+            function loadProjects() {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'get_projects.php', true);
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        var projects = JSON.parse(xhr.responseText);
+                        projectTableBody.innerHTML = '';
+
+                        projects.forEach(function(project) {
+                            var row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${project.name}</td>
+                                <td>${project.manager_email}</td>
+                                <td>${project.end_date}</td>
+                                <td>${project.budget}</td>
+                                <td>${project.description}</td>
+                                <td>
+                                    <button class="edit-btn" data-id="${project.id}">Modifier</button>
+                                    <button class="delete-btn" data-id="${project.id}">Supprimer</button>
+                                </td>
+                            `;
+                            projectTableBody.appendChild(row);
+                        });
+
+                        // Ajouter les événements pour les boutons
+                        document.querySelectorAll('.edit-btn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                var projectId = this.getAttribute('data-id');
+                                loadProjectDetails(projectId);
+                            });
+                        });
+
+                        document.querySelectorAll('.delete-btn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                selectedProjectId = this.getAttribute('data-id');
+                                confirmationMessage.textContent = 'Êtes-vous sûr de vouloir supprimer ce projet ?';
+                                confirmationModal.style.display = 'block';
+                            });
+                        });
+                    }
+                };
+                xhr.send();
+            }
+
+            // Charger les détails du projet pour la modification
+            function loadProjectDetails(id) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'get_project_details.php?id=' + id, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        var project = JSON.parse(xhr.responseText);
+                        document.getElementById('edit-project-id').value = project.id;
+                        document.getElementById('edit-project-name').value = project.name;
+                        document.getElementById('edit-manager-email').value = project.manager_email;
+                        document.getElementById('edit-date').value = project.end_date;
+                        document.getElementById('edit-budget').value = project.budget;
+                        document.getElementById('edit-description').value = project.description;
+
+                        modificationModal.style.display = 'block';
+                    }
+                };
+                xhr.send();
+            }
+
+            // Gestion de la confirmation de suppression
+            confirmDeleteBtn.addEventListener('click', function() {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'delete_project.php', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        showNotification('Projet supprimé avec succès !');
+                        loadProjects();
+                    } else {
+                        showNotification('Erreur lors de la suppression du projet.', 'error');
+                    }
+                    confirmationModal.style.display = 'none';
+                };
+                xhr.send('id=' + selectedProjectId);
+            });
+
+            cancelDeleteBtn.addEventListener('click', function() {
+                confirmationModal.style.display = 'none';
+            });
+
+            // Gestion de la fermeture du modal de modification
+            document.getElementById('close-modification-modal').addEventListener('click', function() {
+                modificationModal.style.display = 'none';
+            });
+
+            // Gestion de l'ajout d'un projet
+            document.getElementById('add-project-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                var formData = new FormData(this);
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'insert_project.php', true);
+
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        showNotification('Projet ajouté avec succès !');
+                        document.getElementById('add-project-form').reset();
+                        loadProjects();
+                    } else {
+                        showNotification('Erreur lors de l\'ajout du projet.', 'error');
+                    }
+                };
+
+                xhr.send(formData);
+            });
+
+            // Gestion de la modification d'un projet
+            editProjectForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                var formData = new FormData(this);
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'update_project.php', true);
+
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        showNotification('Projet modifié avec succès !');
+                        modificationModal.style.display = 'none';
+                        loadProjects();
+                    } else {
+                        showNotification('Erreur lors de la modification du projet.', 'error');
+                    }
+                };
+
+                xhr.send(formData);
+            });
+
+            // Fonction pour afficher les notifications
+            function showNotification(message, type = 'success') {
+                var notificationDiv = document.createElement('div');
+                notificationDiv.className = 'notification-message ' + type;
+                notificationDiv.textContent = message;
+                notificationArea.innerHTML = '';
+                notificationArea.appendChild(notificationDiv);
+
+                setTimeout(function() {
+                    notificationArea.innerHTML = '';
+                }, 3000);
+            }
+
+            // Charger les projets et les chefs de projet
+            loadProjects();
+            loadProjectManagers();
+        });
+        // Création d'un Chef de Projet
+createChefForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+    var formData = new FormData(createChefForm);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'insert_chef.php', true);
+
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            showNotification('Chef de Projet créé avec succès !');
+            createChefForm.reset();
+            
+            loadProjectManagers(); // Recharger les Chefs de Projet après ajout
+        } else {
+            showNotification('Erreur lors de l\'ajout du Chef de Projet.', 'error');
+        }
+    };
+
+    xhr.send(formData);
+});
+// Charger les Chefs de Projet dans le formulaire
+function loadProjectManagers() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'get_project_managers.php', true);
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var managers = JSON.parse(xhr.responseText);
+            var managerSelect = document.getElementById('manager-email');
+            var editManagerSelect = document.getElementById('edit-manager-email');
+            managerSelect.innerHTML = '';
+            editManagerSelect.innerHTML = '';
+
+            managers.forEach(function(manager) {
+                var option = document.createElement('option');
+                option.value = manager.email;
+                option.textContent = manager.email;
+                managerSelect.appendChild(option);
+                editManagerSelect.appendChild(option.cloneNode(true));
+            });
+        }
+    };
+    xhr.send();
+}
+document.addEventListener("DOMContentLoaded", function() {
+    var projectTableBody = document.getElementById('project-table-body');
+    var editProjectForm = document.getElementById('edit-project-form');
+    var confirmationModal = document.getElementById('confirmation-modal');
+    var confirmationMessage = document.getElementById('confirmation-message');
+    var confirmDeleteBtn = document.getElementById('confirm-delete');
+    var cancelDeleteBtn = document.getElementById('cancel-delete');
+    var selectedProjectId = null;
+    var modificationModal = document.getElementById('modification-modal');
+    var notificationArea = document.getElementById('notification-area');
+
+    // Charger les projets au chargement de la page
+    function loadProjects() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'get_projects.php', true);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                var projects = JSON.parse(xhr.responseText);
+                projectTableBody.innerHTML = '';
+
+                projects.forEach(function(project) {
+                    var row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${project.name}</td>
+                        <td>${project.manager_email}</td>
+                        <td>${project.end_date}</td>
+                        <td>${project.budget}</td>
+                        <td>${project.description}</td>
+                        <td>
+                            <button class="edit-btn" data-id="${project.id}">Modifier</button>
+                            <button class="delete-btn" data-id="${project.id}">Supprimer</button>
+                        </td>
+                    `;
+                    projectTableBody.appendChild(row);
+                });
+
+                // Ajouter les événements pour les boutons
+                document.querySelectorAll('.edit-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        var projectId = this.getAttribute('data-id');
+                        loadProjectDetails(projectId);
+                    });
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        selectedProjectId = this.getAttribute('data-id');
+                        confirmationMessage.textContent = 'Êtes-vous sûr de vouloir supprimer ce projet ?';
+                        confirmationModal.style.display = 'block';
+                    });
+                });
+            }
+        };
+        xhr.send();
+    }
+
+    // Charger les détails du projet pour la modification
+    function loadProjectDetails(id) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'get_project_details.php?id=' + id, true);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                var project = JSON.parse(xhr.responseText);
+                document.getElementById('edit-project-id').value = project.id;
+                document.getElementById('edit-project-name').value = project.name;
+                document.getElementById('edit-manager-email').value = project.manager_email;
+                document.getElementById('edit-date').value = project.end_date;
+                document.getElementById('edit-budget').value = project.budget;
+                document.getElementById('edit-description').value = project.description;
+
+                modificationModal.style.display = 'block';
+            }
+        };
+        xhr.send();
+    }
+
+    // Gestion de la confirmation de suppression
+    confirmDeleteBtn.addEventListener('click', function() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'delete_project.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                showNotification('Projet supprimé avec succès !');
+                loadProjects();
+            } else {
+                showNotification('Erreur lors de la suppression du projet.', 'error');
+            }
+            confirmationModal.style.display = 'none';
+        };
+        xhr.send('id=' + selectedProjectId);
+    });
+
+    cancelDeleteBtn.addEventListener('click', function() {
+        confirmationModal.style.display = 'none';
+    });
+
+    // Gestion de la modification du projet
+    editProjectForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        var formData = new FormData(editProjectForm);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'update_project.php', true);
+
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                showNotification('Projet modifié avec succès !');
+                editProjectForm.reset();
+                loadProjects();
+                modificationModal.style.display = 'none';
+            } else {
+                showNotification('Erreur lors de la modification du projet.', 'error');
+            }
+        };
+
+        xhr.send(formData);
+    });
+
+    // Fonction pour afficher les notifications
+    function showNotification(message, type = 'success') {
+        notificationArea.textContent = message;
+        notificationArea.className = type;
+        setTimeout(() => {
+            notificationArea.textContent = '';
+            notificationArea.className = '';
+        }, 3000);
+    }
+
+    loadProjects(); // Charger les projets au chargement de la page
+});
+
+    </script>
+</body>
+</html>
