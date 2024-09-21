@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion</title>
+    <link rel="stylesheet" href="pagep.css">
+    <link rel="icon" href="images/logov2.ocp.png">
+    <style>
+        #error-message {
+            color: red;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var loginForm = document.getElementById('login-form');
+            var errorMessage = document.getElementById('error-message');
+
+            loginForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // Empêche le comportement par défaut du formulaire
+
+                var formData = new FormData(loginForm);
+
+                fetch('pagep.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        errorMessage.textContent = data.error;
+                    } else {
+                        // Redirection ou autre traitement si la connexion est réussie
+                        window.location.href = data.redirect;
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <ul class="nav-links">
+            <li><a href="#home" class="nav-button">Accueil</a></li>
+            <li><a href="#about" class="nav-button" id="about-button">À propos</a></li>
+            <li><a href="#contact" class="nav-button" id="contact-button">Contact</a></li>
+        </ul>
+    </nav>
+    
+    <h3 class="page-title">Bienvenue sur votre application web de gestion de projet et des équipes et suivi des tâches</h3>
+    <div class="login-container">
+        <img src="images/logov2.ocp.png" alt="Image de connexion" class="login-image">
+        <h1>Se connecter</h1>
+        <form id="login-form">
+            <label for="email">Email :</label>
+            <input type="email" id="email" name="email" placeholder="Entrez votre email" required>
+            
+            <label for="password">Mot de passe :</label>
+            <input type="password" id="password" name="password" placeholder="Entrez votre mot de passe" required>
+            
+            <button type="submit">Se connecter</button>
+        </form>
+        <p id="error-message"></p> <!-- Message d'erreur -->
+    </div>
+
+    <!-- Section À propos -->
+    <div id="about-section" class="info-container">
+        <h2>À propos de cette application</h2>
+        <p>Cette application web est conçue pour la gestion complète des projets et le suivi des tâches. Elle permet de gérer les projets de manière efficace, d'organiser et de coordonner les équipes, ainsi que de suivre l'avancement des tâches. Grâce à ses fonctionnalités intégrées, elle facilite la gestion des projets, la supervision des équipes et le suivi détaillé des tâches, assurant ainsi une meilleure organisation et une gestion optimisée des ressources.</p>
+    </div>
+
+    <!-- Section Contact -->
+    <div id="contact-section" class="info-container">
+        <h2>Contactez-nous</h2>
+        <p>Si vous avez un problème ou besoin d'aide, n'hésitez pas à nous contacter :</p>
+        <p>Voici mon email : <a href="mailto:elouaddahalaeddine@gmail.com">elouaddahalaeddine@gmail.com</a></p>
+        <p>Voici mon numéro WhatsApp : <a target="_blank" href="https://wa.me/+2120657589657">+212 0657589657</a></p>
+    </div>
+
+    <script src="pagep.js"></script>
+</body>
+</html>
